@@ -1,0 +1,19 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:kalo}
+    password: ${RABBITMQ_PASSWORD:kalo}
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    # database-platform: ${JDBC_DIALECT:org.hibernate.dialect.H2Dialect}
+  datasource:
+    # driverClassName: ${JDBC_DRIVER:org.h2.Driver}
+    password: ${JDBC_PASS:password}
+    username: ${JDBC_USER:user}
+    url: ${JDBC_URL:jdbc:postgresql://localhost:5432/default_database}

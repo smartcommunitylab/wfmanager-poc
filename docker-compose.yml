@@ -1,0 +1,113 @@
+services:
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    configs:
+      - source: rabbitmq-plugins
+        target: /etc/rabbitmq/enabled_plugins
+    volumes:
+      - rabbitmq-lib:/var/lib/rabbitmq/
+      - rabbitmq-log:/var/log/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  postgres:
+    image: postgres:17.4 # To download a specific version, here the version 17.4 of Postgresql
+    container_name: postgres
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: default_database
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432" 
+    # networks:
+    #   - postgres_network
+
+      
+  workflow-manager:
+    build:
+      context: ./workflow-manager
+      dockerfile: Dockerfile
+    container_name: workflow-manager
+    ports:
+      - "8080:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      SERVER_PORT: 8080
+      JDBC_PASS: password
+      JDBC_USER: user
+      JDBC_URL: jdbc:postgresql://postgres:5432/default_database
+
+  worker1:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: worker1
+    ports:
+      - "8091:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      SERVER_PORT: 8080
+      JDBC_PASS: password
+      JDBC_USER: user
+      JDBC_URL: jdbc:postgresql://postgres:5432/default_database
+
+  worker2:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: worker2
+    ports:
+      - "8092:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      SERVER_PORT: 8080
+      JDBC_PASS: password
+      JDBC_USER: user
+      JDBC_URL: jdbc:postgresql://postgres:5432/default_database
+
+configs:
+  rabbitmq-plugins:
+    content: "[rabbitmq_management]."  
+
+volumes:
+  rabbitmq-lib:
+    driver: local
+  rabbitmq-log:
+    driver: local
+  postgresql_data:
+    driver: local  
+
+# networks:
+#   postgres_network:
+#     driver: bridge
