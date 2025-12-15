@@ -16,32 +16,35 @@ import com.smartcommunity.worker.repository.TaskRepository;
 @Transactional
 public class TaskStoreService {
 
-    @Autowired
-    private TaskRepository taskRepository;
+	@Autowired
+	private TaskRepository taskRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Task startTask(Task task) {
-        Task dbTask = taskRepository.findById(task.getId()).orElse(null);
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public Task startTask(String id) {
+		Task dbTask = taskRepository.findById(id).orElse(null);
 
-        if (dbTask!= null) {
-            task.setUpdatedAt(System.currentTimeMillis());
-            task.setStatus(TaskStatus.IN_PROGRESS.name());
-            return taskRepository.save(task);            
-        } else {
-            return null;
-        }
-    }
+		if (dbTask != null) {
+			dbTask.setUpdatedAt(System.currentTimeMillis());
+			dbTask.setStatus(TaskStatus.IN_PROGRESS.name());
+			return taskRepository.saveAndFlush(dbTask);
+		}
+		else {
+			return null;
+		}
+	}
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Task completeTask(Task task) {
-        Task dbTask = taskRepository.findById(task.getId()).orElse(null);
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public Task completeTask(Task task) {
+		Task dbTask = taskRepository.findById(task.getId()).orElse(null);
 
-        if (dbTask!= null) {
-            task.setUpdatedAt(System.currentTimeMillis());
-            task.setStatus(TaskStatus.COMPLETED.name());
-            return taskRepository.save(task);            
-        } else {
-            return null;
-        }
-    }
+		if (dbTask != null) {
+			dbTask.setUpdatedAt(System.currentTimeMillis());
+			dbTask.setStatus(TaskStatus.COMPLETED.name());
+			return taskRepository.saveAndFlush(dbTask);
+		}
+		else {
+			return null;
+		}
+	}
+
 }

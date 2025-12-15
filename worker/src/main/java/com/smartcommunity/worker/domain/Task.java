@@ -1,13 +1,19 @@
 package com.smartcommunity.worker.domain;
 
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 
 @Entity
 public class Task {
 
     @Id
     private String id;
+
+    @Version
+    private Integer version;
+    
     private String type;
     private long createdAt;
     private long updatedAt;
@@ -22,6 +28,15 @@ public class Task {
     public void setId(String id) {
         this.id = id;
     }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     public String getType() {
         return type;    
     }

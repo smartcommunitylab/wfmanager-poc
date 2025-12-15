@@ -25,19 +25,20 @@ public class TaskStoreService {
      * @param task
      * @return
      */
-    public Task initiateTask(Task task) {
+    public Task store(Task task) {
         Task dbTask = task.getId() != null ? taskRepository.findById(task.getId()).orElse(null) : null;
 
         if (dbTask == null) {
             task.setId(java.util.UUID.randomUUID().toString());
+            task.setVersion(0);
             task.setCreatedAt(System.currentTimeMillis());
             task.setUpdatedAt(System.currentTimeMillis());
             task.setStatus(TaskStatus.PENDING.name());
-            return taskRepository.save(task);            
+            return taskRepository.saveAndFlush(task);            
         } else {
             task.setUpdatedAt(System.currentTimeMillis());
             task.setStatus(TaskStatus.PENDING.name());
-            return taskRepository.save(task);
+            return taskRepository.saveAndFlush(task);
         }
     }
 
