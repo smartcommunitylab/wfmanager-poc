@@ -9,7 +9,56 @@ The application consists of two main Java Spring Boot services that communicate 
 - **Workflow Manager**: Handles workflow creation, task management, and API endpoints for interacting with workflows.
 - **Worker**: Processes tasks from a persistent RabbitMQ queue.
 
+And a mock web UI for interacting with the manager:
+
+- **WM Console**: React admin console for workflow CRUD via REST API
+
+
+## Features
+
+The application mocks the management and execution of a *workflow* composed of multiple *jobs* over a distributed system, where the orchestrator (manager) defines and dispatches the jobs while workers independently manage their workloads.
+
+A centralized job *store* serves as repository for jobs: both manager and workers can read and write to keep track of the executions. Concurrency and data consistency is handled by *versioning*: at every write the version counter is incremented, assuring that stale copies can not overwrite fresh ones.
+
 ## Architecture
+The following diagram shows the centralized job store, the orchestrator (manager), multiple workers, and the message bus used for the work queue.
+
+The orchestrator dispatches jobs to the message bus, which delivers work to workers. All components interact with the centralized job store for job status and data.
+
+
+```mermaid
+flowchart LR
+    subgraph Centralized_Job_Store
+        DB[(Job Store / Database)]
+    end
+
+    subgraph Orchestrator
+        MANAGER[Workflow Manager / Orchestrator]
+    end
+
+    subgraph Workers
+        WORKER1[Worker 1]
+        WORKER2[Worker 2]
+        WORKER3[Worker N]
+    end
+
+    subgraph Message_Bus
+        BUS((Message Bus / Work Queue))
+    end
+
+    MANAGER -- Schedules Jobs --> BUS
+    BUS -- Dispatches Job --> WORKER1
+    BUS -- Dispatches Job --> WORKER2
+    BUS -- Dispatches Job --> WORKER3
+    MANAGER -- Reads/Writes --> DB
+    WORKER1 -- Updates Job Status --> DB
+    WORKER2 -- Updates Job Status --> DB
+    WORKER3 -- Updates Job Status --> DB
+```
+
+
+
+
 
 ### Services
 
@@ -30,6 +79,10 @@ The application is composed of the following services in Docker Compose:
   - Built with Java 21 LTS
   - Consumes tasks from RabbitMQ queue
   - Processes and completes tasks asynchronously
+
+- **WM-Console**: React admin web console
+  - Exposes http port 5173
+  - Connects to workflow-manager on http://localhost:8080 (configurable)
 
 ### Java Projects
 
@@ -93,6 +146,7 @@ The application is composed of the following services in Docker Compose:
    - RabbitMQ (with health check)
    - Workflow-Manager (after RabbitMQ is healthy)
    - Worker (after RabbitMQ is healthy)
+   - WM Console (after Workflow-manager is started)
 
 
 3. Test the execution submitting a simple workflow (e.g., using curl or via OpenAPI Explorer): 
@@ -100,8 +154,11 @@ The application is composed of the following services in Docker Compose:
 curl -X POST http://localhost:8080/api/workflow -H "Content-Type: application/json" -d '{ "name": "wf", "id": "1","tasks": [{ "type": "t1" }, { "type": "t2" }]}'
 ```
 
+4. Access the web UI at http://localhost:5173 and create a workflow via web form. By accessing the details page one can monitor the jobs progress and verify the status
+
 ### Access the Application
 
+- **WM Console**: http://localhost:5173
 - **Workflow Manager API**: http://localhost:8080
 - **Swagger/OpenAPI Documentation**: http://localhost:8080/swagger-ui/index.html
 - **RabbitMQ Management UI**: http://localhost:15672 (username: guest, password: guest)
@@ -150,6 +207,14 @@ To run services locally (outside Docker):
    java -jar target/*.jar
    ```
 
+4. Install dependencies and run the web application
+   ```bash
+   yarn install
+   yarn dev
+   ```
+
+
+
 ### Testing
 
 Run tests for each service:
@@ -168,5 +233,6 @@ mvn test
 - **RabbitMQ**: Message broker
 - **Maven**: Build tool
 - **Docker & Docker Compose**: Containerization and orchestration
-- **SpringDoc OpenAPI**: API documentation</content>
-<parameter name="filePath">/Users/raman/Documents/Work/SO/projects/SmartCommunity/DIPS/workflow-poc/README.md
+- **SpringDoc OpenAPI**: API documentation
+- **React Admin**: react web admin development framework
+
