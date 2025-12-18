@@ -54,6 +54,12 @@ flowchart LR
     WORKER1 -- Updates Job Status --> DB
     WORKER2 -- Updates Job Status --> DB
     WORKER3 -- Updates Job Status --> DB
+
+    WORKER1 -- Signals completion --> BUS
+    WORKER2 -- Signals completion --> BUS
+    WORKER3 -- Signals completion --> BUS
+    BUS -- Signals completion --> MANAGER
+
 ```
 
 
