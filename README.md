@@ -90,6 +90,10 @@ The application is composed of the following services in Docker Compose:
   - Exposes http port 5173
   - Connects to workflow-manager on http://localhost:8080 (configurable)
 
+
+- **Postgres**: Job repository  
+  - PostgreSQL 17.4
+
 ### Java Projects
 
 #### Workflow-Manager (`workflow-manager/`)
@@ -241,4 +245,4 @@ mvn test
 - **Docker & Docker Compose**: Containerization and orchestration
 - **SpringDoc OpenAPI**: API documentation
 - **React Admin**: react web admin development framework
-
+- **PostgreSQL**: Relational database
